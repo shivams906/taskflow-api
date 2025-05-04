@@ -23,15 +23,17 @@ namespace TaskFlowAPI.Data
             modelBuilder.Entity<ProjectUser>()
                 .HasOne(pu => pu.User)
                 .WithMany(u => u.ProjectUsers)
-                .HasForeignKey(pu => pu.UserId);
+                .HasForeignKey(pu => pu.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectUser>()
                 .HasOne(pu => pu.Project)
                 .WithMany(p => p.ProjectUsers)
-                .HasForeignKey(pu => pu.ProjectId);
+                .HasForeignKey(pu => pu.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<TaskItem>()
-                .Property(t => t.Status)
+            modelBuilder.Entity<ProjectUser>()
+                .Property(p => p.Role)
                 .HasConversion<string>();
 
             modelBuilder.Entity<TaskItem>()
@@ -40,8 +42,20 @@ namespace TaskFlowAPI.Data
                 .HasForeignKey(t => t.AssignedToId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ProjectUser>()
-                .Property(p => p.Role)
+            modelBuilder.Entity<TaskItem>()
+                .HasOne(t => t.CreatedBy)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskItem>()
+                .HasOne(t => t.Project)
+                .WithMany(p => p.Tasks)
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TaskItem>()
+                .Property(t => t.Status)
                 .HasConversion<string>();
 
         }
