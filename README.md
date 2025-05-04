@@ -1,36 +1,59 @@
-# TaskFlow - Project Management System
+# 🚀 TaskFlow – Project & Task Management System
 
-TaskFlow is a task and project management system built with **ASP.NET Core** for the backend and **Vue.js** for the frontend. This application allows users to manage projects, tasks, and time logs in a simple and intuitive way. It features role-based access control, time tracking, and an easy-to-use UI focused on usability and simplicity.
+**TaskFlow** is a modern task and project management system built with **ASP.NET Core** and **Vue.js**. It enables teams to efficiently manage projects, assign tasks, track time, and collaborate seamlessly. Designed with simplicity, role-based access, and productivity in mind.
 
-## Features
+---
 
-### Backend (ASP.NET Core)
+## ✨ Features
 
-- **Authentication & Authorization**: JWT token-based authentication with role-based authorization (Creator, Admin, Assigned User).
-- **Project Management**: Create, Edit, Delete projects and assign admins.
-- **Task Management**: Create, Edit, Delete tasks, assign/unassign tasks to users, and update task status.
-- **Time Logging**: Users can log time for tasks with a start/stop timer system.
-- **API Improvements**: DTO usage for clean data exposure, Automapper for mappings, and exception handling.
-- **Security**: API secured with JWT bearer tokens.
+### 🔧 Backend – ASP.NET Core 8
 
-### Frontend (Vue.js)
+- 🔐 **Authentication & Authorization**  
+  JWT-based authentication with role-based access control (`Creator`, `Admin`, `Assigned User`).
 
-- **User Authentication Pages**: Login, Register.
-- **Project Management Pages**: Admins can view, create, edit, and delete projects.
-- **Task Management Pages**: Admins can manage tasks, assigned users can view and update tasks.
-- **Time Logs Pages**: Users can view and add time logs.
-- **UX Features**: Toast notifications, modal dialogs, and responsive design.
+- 📁 **Project Management**  
+  Create, update, delete projects. Assign and manage project admins.
 
-## Tech Stack
+- 📋 **Task Management**  
+  Create, update, delete tasks. Assign users, update task status.
 
-- **Backend**:
+- ⏱️ **Time Logging**  
+  Start/stop timer-based time tracking. View per-user time logs.
 
-  - ASP.NET Core 8
-  - Entity Framework Core
-  - SQLite Database
-  - JWT Authentication
+- ⚙️ **Architecture & Clean Code**  
+  - DTOs and AutoMapper for clean separation
+  - Audit logging with interceptors  
+  - Modular code organization
 
-- **Frontend**:
-  - Vue 3
-  - TailwindCSS
-  - Vite (for fast development build)
+- 🛡️ **Security**  
+  APIs secured with JWT Bearer Tokens. Role checks enforced.
+
+### 💻 Frontend – Vue 3 + Tailwind
+
+- 🔐 **Auth Pages**  
+  Login & Register with secure token management.
+
+- 🧭 **Project Dashboard**  
+  View, create, and manage projects for authorized users.
+
+- ✅ **Task Panel**  
+  Filter, view, and update tasks.
+
+- 🕒 **Time Logs**  
+  Track hours worked. Users can log time manually or via timer.
+
+- 💡 **UX Enhancements**  
+  - Toast notifications  
+  - Modal dialogs  
+  - Fully responsive design  
+  - Clean, minimal UI
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer     | Stack                          |
+|-----------|--------------------------------|
+| Backend   | ASP.NET Core 8, EF Core, JWT   |
+| Frontend  | Vue 3, TailwindCSS, Vite       |
+| Database  | SQL Server |
