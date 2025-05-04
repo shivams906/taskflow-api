@@ -8,7 +8,8 @@
         public string Username { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public string Role { get; set; } = "User";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAtUtc { get; set; }
 
         public ICollection<ProjectUser> ProjectUsers { get; set; }
         public ICollection<TaskItem> AssignedTasks { get; set; }

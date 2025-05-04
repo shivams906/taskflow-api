@@ -22,13 +22,53 @@ namespace TaskFlowAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TaskFlowAPI.Models.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AuditType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChangedColumns")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("KeyValues")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLogs");
+                });
+
             modelBuilder.Entity("TaskFlowAPI.Models.Project", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("CreatedById")
@@ -41,9 +81,17 @@ namespace TaskFlowAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
 
                     b.ToTable("Projects");
                 });
@@ -56,11 +104,27 @@ namespace TaskFlowAPI.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("ProjectId", "UserId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
 
                     b.HasIndex("UserId");
 
@@ -76,7 +140,7 @@ namespace TaskFlowAPI.Migrations
                     b.Property<Guid?>("AssignedToId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("CreatedById")
@@ -96,6 +160,12 @@ namespace TaskFlowAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedToId");
@@ -104,6 +174,8 @@ namespace TaskFlowAPI.Migrations
 
                     b.HasIndex("ProjectId");
 
+                    b.HasIndex("UpdatedById");
+
                     b.ToTable("Tasks");
                 });
 
@@ -111,6 +183,12 @@ namespace TaskFlowAPI.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("EndTime")
@@ -122,12 +200,22 @@ namespace TaskFlowAPI.Migrations
                     b.Property<Guid>("TaskItemId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("TaskItemId");
+
+                    b.HasIndex("UpdatedById");
 
                     b.HasIndex("UserId");
 
@@ -140,7 +228,7 @@ namespace TaskFlowAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -159,6 +247,9 @@ namespace TaskFlowAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -166,6 +257,17 @@ namespace TaskFlowAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TaskFlowAPI.Models.AuditLog", b =>
+                {
+                    b.HasOne("TaskFlowAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskFlowAPI.Models.Project", b =>
@@ -176,16 +278,33 @@ namespace TaskFlowAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TaskFlowAPI.Models.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("TaskFlowAPI.Models.ProjectUser", b =>
                 {
+                    b.HasOne("TaskFlowAPI.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("TaskFlowAPI.Models.Project", "Project")
                         .WithMany("ProjectUsers")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("TaskFlowAPI.Models.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TaskFlowAPI.Models.User", "User")
                         .WithMany("ProjectUsers")
@@ -193,7 +312,11 @@ namespace TaskFlowAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CreatedBy");
+
                     b.Navigation("Project");
+
+                    b.Navigation("UpdatedBy");
 
                     b.Navigation("User");
                 });
@@ -217,28 +340,48 @@ namespace TaskFlowAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("TaskFlowAPI.Models.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
                     b.Navigation("AssignedTo");
 
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Project");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("TaskFlowAPI.Models.TaskTimeLog", b =>
                 {
+                    b.HasOne("TaskFlowAPI.Models.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TaskFlowAPI.Models.TaskItem", "TaskItem")
                         .WithMany("TimeLogs")
                         .HasForeignKey("TaskItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TaskFlowAPI.Models.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+
                     b.HasOne("TaskFlowAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CreatedBy");
+
                     b.Navigation("TaskItem");
+
+                    b.Navigation("UpdatedBy");
 
                     b.Navigation("User");
                 });

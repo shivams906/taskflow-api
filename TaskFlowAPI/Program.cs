@@ -4,7 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskFlowAPI.Data;
+using TaskFlowAPI.Interceptors;
+using TaskFlowAPI.Interfaces;
 using TaskFlowAPI.Models;
+using TaskFlowAPI.Services;
 using TaskFlowAPI.Settings;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -12,10 +15,16 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentSessionProvider, CurrentSessionProvider>();
+builder.Services.AddScoped<AuditSaveChangesInterceptor>();
+
 
 //Add Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>((provider, options) =>
+    { var interceptor = provider.GetRequiredService<AuditSaveChangesInterceptor>();
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).AddInterceptors(interceptor);
+    });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 

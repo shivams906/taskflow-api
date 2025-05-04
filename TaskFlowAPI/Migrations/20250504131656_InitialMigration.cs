@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskFlowAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSqlMigration : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,11 +21,37 @@ namespace TaskFlowAPI.Migrations
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AuditLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TableName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    KeyValues = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OldValues = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NewValues = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChangedColumns = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AuditType = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AuditLogs_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -36,7 +62,9 @@ namespace TaskFlowAPI.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -47,6 +75,11 @@ namespace TaskFlowAPI.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Projects_Users_UpdatedById",
+                        column: x => x.UpdatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -55,6 +88,10 @@ namespace TaskFlowAPI.Migrations
                 {
                     ProjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -64,6 +101,18 @@ namespace TaskFlowAPI.Migrations
                         name: "FK_ProjectUsers_Projects_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProjectUsers_Users_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ProjectUsers_Users_UpdatedById",
+                        column: x => x.UpdatedById,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -85,7 +134,9 @@ namespace TaskFlowAPI.Migrations
                     ProjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AssignedToId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -108,6 +159,11 @@ namespace TaskFlowAPI.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Tasks_Users_UpdatedById",
+                        column: x => x.UpdatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -118,7 +174,11 @@ namespace TaskFlowAPI.Migrations
                     TaskItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -130,17 +190,48 @@ namespace TaskFlowAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_TaskTimeLogs_Users_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TaskTimeLogs_Users_UpdatedById",
+                        column: x => x.UpdatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_TaskTimeLogs_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AuditLogs_UserId",
+                table: "AuditLogs",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Projects_CreatedById",
                 table: "Projects",
                 column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_UpdatedById",
+                table: "Projects",
+                column: "UpdatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProjectUsers_CreatedById",
+                table: "ProjectUsers",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProjectUsers_UpdatedById",
+                table: "ProjectUsers",
+                column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProjectUsers_UserId",
@@ -163,9 +254,24 @@ namespace TaskFlowAPI.Migrations
                 column: "ProjectId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tasks_UpdatedById",
+                table: "Tasks",
+                column: "UpdatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskTimeLogs_CreatedById",
+                table: "TaskTimeLogs",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TaskTimeLogs_TaskItemId",
                 table: "TaskTimeLogs",
                 column: "TaskItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskTimeLogs_UpdatedById",
+                table: "TaskTimeLogs",
+                column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaskTimeLogs_UserId",
@@ -176,6 +282,9 @@ namespace TaskFlowAPI.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AuditLogs");
+
             migrationBuilder.DropTable(
                 name: "ProjectUsers");
 

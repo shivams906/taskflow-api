@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TaskFlowAPI.Data;
 using TaskFlowAPI.DTOs;
+using TaskFlowAPI.Interfaces;
 using TaskFlowAPI.Models;
 using TaskFlowAPI.Models.Enums;
 
@@ -17,23 +18,20 @@ namespace TaskFlowAPI.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ICurrentSessionProvider _currentSessionProvider;
 
-        public TasksController(AppDbContext context, IMapper mapper)
+        public TasksController(AppDbContext context, IMapper mapper, ICurrentSessionProvider currentSessionProvider)
         {
             _context = context;
             _mapper = mapper;
-        }
-
-        private Guid GetUserId()
-        {
-            return Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new Exception("User ID not found"));
+            _currentSessionProvider = currentSessionProvider;
         }
 
         // ✅ 1. Get all tasks for a project (for admins)
         [HttpGet("project/{projectId}")]
         public async Task<IActionResult> GetTasksForProject(Guid projectId)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var isAdmin = await _context.ProjectUsers
                 .AnyAsync(pu => pu.ProjectId == projectId && pu.UserId == userId && pu.Role == ProjectRole.Admin);
@@ -57,7 +55,7 @@ namespace TaskFlowAPI.Controllers
         [HttpGet("my")]
         public async Task<IActionResult> GetMyTasks()
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var tasks = await _context.Tasks
                 .Include(t => t.Project)
@@ -73,7 +71,7 @@ namespace TaskFlowAPI.Controllers
         [HttpGet("{taskId}")]
         public async Task<IActionResult> GetTaskById(Guid taskId)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
             var task = await _context.Tasks
                 .Include(t => t.AssignedTo)
                 .FirstOrDefaultAsync(t => t.Id == taskId);
@@ -93,7 +91,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto task)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             // Check admin access
             var isAdmin = await _context.ProjectUsers
@@ -106,7 +104,7 @@ namespace TaskFlowAPI.Controllers
 
             taskItem.Id = Guid.NewGuid();
             taskItem.CreatedById = userId;
-            taskItem.CreatedAt = DateTime.UtcNow;
+            taskItem.CreatedAtUtc = DateTime.UtcNow;
 
             _context.Tasks.Add(taskItem);
             await _context.SaveChangesAsync();
@@ -118,7 +116,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPut("{taskId}/status")]
         public async Task<IActionResult> UpdateStatus(Guid taskId, [FromBody] UpdateTaskStatusDto dto)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
             var task = await _context.Tasks.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
 
             if (task == null)
@@ -137,6 +135,8 @@ namespace TaskFlowAPI.Controllers
                 return BadRequest("Invalid task status.");
 
             task.Status = statusEnum;
+            task.UpdatedById = userId;
+            task.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok("Task status updated.");
@@ -146,7 +146,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPost("{taskId}/log-time")]
         public async Task<IActionResult> LogTime(Guid taskId, [FromBody] CreateTimeLogDto dto)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
 
@@ -158,6 +158,8 @@ namespace TaskFlowAPI.Controllers
             log.Id = Guid.NewGuid();
             log.TaskItemId = taskId;
             log.UserId = userId;
+            log.CreatedById = userId;
+            log.CreatedAtUtc = DateTime.UtcNow;
 
             _context.TaskTimeLogs.Add(log);
             await _context.SaveChangesAsync();
@@ -168,7 +170,7 @@ namespace TaskFlowAPI.Controllers
         [HttpGet("{taskId}/logs")]
         public async Task<IActionResult> GetTimeLogsForTask(Guid taskId, [FromQuery] bool onlyMine = false)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks
                 .Include(t => t.Project)
@@ -206,7 +208,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPut("{taskId}")]
         public async Task<IActionResult> UpdateTask(Guid taskId, [FromBody] CreateTaskDto updated)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks
                 .Include(t => t.Project)
@@ -224,6 +226,8 @@ namespace TaskFlowAPI.Controllers
             // Update fields
             task.Title = updated.Title;
             task.Description = updated.Description;
+            task.UpdatedById = userId;
+            task.UpdatedAtUtc = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -234,7 +238,7 @@ namespace TaskFlowAPI.Controllers
         [HttpDelete("{taskId}")]
         public async Task<IActionResult> DeleteTask(Guid taskId)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks
                 .Include(t => t.Project)
@@ -258,7 +262,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPut("{taskId}/assign")]
         public async Task<IActionResult> AssignTask(Guid taskId, [FromBody] AssignUserToTaskDto dto)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks
                 .Include(t => t.Project)
@@ -278,6 +282,8 @@ namespace TaskFlowAPI.Controllers
                 return BadRequest("User not found.");
 
             task.AssignedToId = dto.UserId;
+            task.UpdatedById = userId;
+            task.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok("Task assigned.");
@@ -286,7 +292,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPut("{taskId}/unassign")]
         public async Task<IActionResult> UnassignTask(Guid taskId)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var task = await _context.Tasks
                 .Include(t => t.Project)
@@ -303,6 +309,8 @@ namespace TaskFlowAPI.Controllers
                 return Forbid("Only project creator or admins can unassign this task.");
 
             task.AssignedToId = null;
+            task.UpdatedById = userId;
+            task.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok("Task unassigned.");

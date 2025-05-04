@@ -36,6 +36,7 @@ namespace TaskFlowAPI.Controllers
                 return BadRequest("Username already exists");
 
             var user = new User { Username = request.Username };
+            user.CreatedAtUtc = DateTime.UtcNow;
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
             _db.Users.Add(user);

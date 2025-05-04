@@ -12,6 +12,8 @@ namespace TaskFlowAPI.Data
         public DbSet<ProjectUser> ProjectUsers => Set<ProjectUser>();
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
         public DbSet<TaskTimeLog> TaskTimeLogs => Set<TaskTimeLog>();
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +32,18 @@ namespace TaskFlowAPI.Data
                 .HasOne(pu => pu.Project)
                 .WithMany(p => p.ProjectUsers)
                 .HasForeignKey(pu => pu.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectUser>()
+                .HasOne(pu => pu.CreatedBy)
+                .WithMany()
+                .HasForeignKey(pu => pu.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectUser>()
+                .HasOne(pu => pu.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(pu => pu.UpdatedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectUser>()
@@ -57,6 +71,17 @@ namespace TaskFlowAPI.Data
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.Status)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.AuditType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<TaskTimeLog>()
+                .HasOne(tt => tt.User)
+                .WithMany()
+                .HasForeignKey(tt => tt.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
         }
     }

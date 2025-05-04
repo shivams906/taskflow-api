@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TaskFlowAPI.Data;
 using TaskFlowAPI.DTOs;
+using TaskFlowAPI.Interfaces;
 using TaskFlowAPI.Models;
 using TaskFlowAPI.Models.Enums;
 
@@ -17,17 +18,19 @@ namespace TaskFlowAPI.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ICurrentSessionProvider _currentSessionProvider;
 
-        public ProjectsController(AppDbContext context, IMapper mapper)
+        public ProjectsController(AppDbContext context, IMapper mapper, ICurrentSessionProvider currentSessionProvider)
         {
             _context = context;
             _mapper = mapper;
+            _currentSessionProvider = currentSessionProvider;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetMyProjects()
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var projects = await _context.Projects
                 .Where(p => p.CreatedById == userId ||
@@ -44,10 +47,11 @@ namespace TaskFlowAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
             var project = _mapper.Map<Project>(dto);
             project.Id = Guid.NewGuid();
             project.CreatedById = userId;
+            project.CreatedAtUtc = DateTime.UtcNow;
             
             _context.Projects.Add(project);
 
@@ -56,7 +60,9 @@ namespace TaskFlowAPI.Controllers
             {
                 ProjectId = project.Id,
                 UserId = userId,
-                Role = ProjectRole.Admin
+                Role = ProjectRole.Admin,
+                CreatedById = userId,
+                CreatedAtUtc = DateTime.UtcNow
             };
 
             _context.ProjectUsers.Add(projectUser);
@@ -70,7 +76,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPost("add-admin")]
         public async Task<IActionResult> AddProjectAdmin([FromBody] AddProjectAdminDto dto)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             // Check if current user is the creator of the project
             var project = await _context.Projects
@@ -87,6 +93,8 @@ namespace TaskFlowAPI.Controllers
                 return BadRequest("User is already an admin of this project.");
 
             var projectUser = _mapper.Map<ProjectUser>(dto);
+            projectUser.CreatedById = userId;
+            projectUser.CreatedAtUtc = DateTime.UtcNow;
 
             _context.ProjectUsers.Add(projectUser);
             await _context.SaveChangesAsync();
@@ -97,7 +105,7 @@ namespace TaskFlowAPI.Controllers
         [HttpDelete("remove-admin")]
         public async Task<IActionResult> RemoveAdmin([FromBody] AddProjectAdminDto dto)
         {
-            var currentUserId = GetUserId();
+            var currentUserId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             // Only creator can remove admin
             var project = await _context.Projects
@@ -122,7 +130,7 @@ namespace TaskFlowAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProjectById(Guid id)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var project = await _context.Projects
                 .Include(p => p.ProjectUsers)!
@@ -144,7 +152,7 @@ namespace TaskFlowAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProject(Guid id, [FromBody] CreateProjectDto updated)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var project = await _context.Projects
                 .Include(p => p.CreatedBy)
@@ -155,6 +163,8 @@ namespace TaskFlowAPI.Controllers
 
             project.Title = updated.Title;
             project.Description = updated.Description;
+            project.CreatedById = userId;
+            project.CreatedAtUtc = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -166,7 +176,7 @@ namespace TaskFlowAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(Guid id)
         {
-            var userId = GetUserId();
+            var userId = _currentSessionProvider.GetUserId() ?? throw new Exception("User ID not found");
 
             var project = await _context.Projects
                 .Include(p => p.Tasks)
@@ -184,12 +194,6 @@ namespace TaskFlowAPI.Controllers
             await _context.SaveChangesAsync();
 
             return Ok("Project deleted.");
-        }
-
-
-        private Guid GetUserId()
-        {
-            return Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new Exception("User ID not found"));
         }
     }
 }

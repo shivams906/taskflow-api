@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TaskFlowAPI.Interfaces;
 
 namespace TaskFlowAPI.Models
 {
-    public class Project
+    public class Project : IAuditableEntity
     {
         public Guid Id { get; set; }
 
@@ -14,7 +15,10 @@ namespace TaskFlowAPI.Models
         public Guid CreatedById { get; set; }
         public User CreatedBy { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+        public Guid? UpdatedById { get; set; }
+        public User? UpdatedBy { get; set; }
+        public DateTime? UpdatedAtUtc { get; set; }
 
         public ICollection<ProjectUser> ProjectUsers { get; set; }
         public ICollection<TaskItem> Tasks { get; set; }
