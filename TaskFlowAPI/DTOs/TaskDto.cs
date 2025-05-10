@@ -11,7 +11,7 @@ namespace TaskFlowAPI.DTOs
         public string Status { get; set; } = null!;
         public Guid? AssignedToId { get; set; }
         public string? AssignedTo { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
         public string CreatedBy { get; set; } = null!;
     }
 }

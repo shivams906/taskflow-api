@@ -10,9 +10,6 @@ namespace TaskFlow.API.Helpers
         public MappingProfile()
         {
             CreateMap<Project, ProjectDto>()
-                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy.Username));
-
-            CreateMap<Project, ProjectDto>()
               .ForMember(d => d.CreatedBy, o => o.MapFrom(s => s.CreatedBy.Username))
               .ForMember(d => d.Admins, o => o.MapFrom(s =>
                    s.ProjectUsers
